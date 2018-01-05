@@ -71,48 +71,51 @@ def lane_lines(img, lines):
 
 	return left_lines, right_lines
 
-cap = cv2.VideoCapture('test_videos/solidWhiteRight.mp4')
 
-while(cap.isOpened()):
+if __name__ == "__main__":
+	
+	cap = cv2.VideoCapture('test_videos/solidWhiteRight.mp4')
 
-	ret, img = cap.read()
-	gray_image = grayscale(img)
-	blur_image = blur(gray_image, 5)
-	edges = edge_detector(blur_image, 50, 150)
+	while(cap.isOpened()):
 
-	mask = np.zeros_like(edges)
-	ignore_mask_color = 255
-	vertices = np.array([[(0,edges.shape[0]),(480, 310), (485, 310), (edges.shape[1],edges.shape[0])]], dtype=np.int32)
-	cv2.fillPoly(mask, vertices, ignore_mask_color)
-	masked_edges = cv2.bitwise_and(edges, mask)
+		ret, img = cap.read()
+		gray_image = grayscale(img)
+		blur_image = blur(gray_image, 5)
+		edges = edge_detector(blur_image, 50, 150)
+
+		mask = np.zeros_like(edges)
+		ignore_mask_color = 255
+		vertices = np.array([[(0,edges.shape[0]),(480, 310), (485, 310), (edges.shape[1],edges.shape[0])]], dtype=np.int32)
+		cv2.fillPoly(mask, vertices, ignore_mask_color)
+		masked_edges = cv2.bitwise_and(edges, mask)
 
 
-	rho = 2 # distance resolution in pixels of the Hough grid
-	theta = np.pi/180 # angular resolution in radians of the Hough grid
-	threshold = 15    # minimum number of votes (intersections in Hough grid cell)
-	min_line_length = 20 #minimum number of pixels making up a line
-	max_line_gap = 15   # maximum gap in pixels between connectable line segments
+		rho = 2 # distance resolution in pixels of the Hough grid
+		theta = np.pi/180 # angular resolution in radians of the Hough grid
+		threshold = 15    # minimum number of votes (intersections in Hough grid cell)
+		min_line_length = 20 #minimum number of pixels making up a line
+		max_line_gap = 15   # maximum gap in pixels between connectable line segments
 
-	# Run Hough on edge detected image
-	# Output "lines" is an array containing endpoints of detected line segments
-	hough_lines = detect_hough_lines(masked_edges, rho, theta, threshold, min_line_length, max_line_gap)
+		# Run Hough on edge detected image
+		# Output "lines" is an array containing endpoints of detected line segments
+		hough_lines = detect_hough_lines(masked_edges, rho, theta, threshold, min_line_length, max_line_gap)
 
-	left_line, right_line = lane_lines(blur_image, hough_lines)
+		left_line, right_line = lane_lines(blur_image, hough_lines)
 
-	#left lane
-	if left_line is not None:
-		x1,y1,x2,y2 = left_line
-		cv2.line(img,(x1,y1),(x2,y2),(0,0,255),2)
+		#left lane
+		if left_line is not None:
+			x1,y1,x2,y2 = left_line
+			cv2.line(img,(x1,y1),(x2,y2),(0,0,255),2)
 
-	#right lane
-	if right_line is not None:
-		x1,y1,x2,y2 = right_line
-		cv2.line(img,(x1,y1),(x2,y2),(0,0,255),2)
+		#right lane
+		if right_line is not None:
+			x1,y1,x2,y2 = right_line
+			cv2.line(img,(x1,y1),(x2,y2),(0,0,255),2)
 
-	cv2.imshow("Video", img)
+		cv2.imshow("Video", img)
 
-	if cv2.waitKey(1) & 0xFF == ord('q'):
-		break
+		if cv2.waitKey(1) & 0xFF == ord('q'):
+			break
 
-cap.release()
-cv2.destroyAllWindows()
+	cap.release()
+	cv2.destroyAllWindows()
